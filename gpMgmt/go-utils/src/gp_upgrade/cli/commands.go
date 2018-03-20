@@ -339,6 +339,25 @@ var subShareOids = &cobra.Command{
 			os.Exit(1)
 		}
 	},
-	//TODO this could be improved.
-	// Also, if another command is added, the message will need to be updated.
+}
+
+var subValidateStartCluster = &cobra.Command{
+	Use:   "validate-start-cluster",
+	Short: "Attempt to start upgraded cluster",
+	Long:  `Use gpstart in order to validate that the new cluster can successfully transition from a stopped to running state`,
+	Run: func(cmd *cobra.Command, args []string) {
+		conn, connConfigErr := grpc.Dial("localhost:"+hubPort,
+			grpc.WithInsecure())
+		if connConfigErr != nil {
+			gplog.Error(connConfigErr.Error())
+			os.Exit(1)
+		}
+
+		client := pb.NewCliToHubClient(conn)
+		err := commanders.NewUpgrader(client).ValidateStartCluster(newDataDir, newBinDir)
+		if err != nil {
+			gplog.Error(err.Error())
+			os.Exit(1)
+		}
+	},
 }
